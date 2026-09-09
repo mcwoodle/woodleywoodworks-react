@@ -1,16 +1,696 @@
 @import "tailwindcss" source(".");
 
-@theme {
-	--font-sans:
-		"Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
-		"Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+/* ─────────────────────────────────────────────
+   Design tokens
+
+   Deliberately the same palette as builtbywoodley.ca — warm paper, deep
+   slate, sage and copper. The two sites should look like they belong to the
+   same person, because they do, and a visitor arriving at the portfolio from
+   here should feel the continuity rather than a handoff.
+   ───────────────────────────────────────────── */
+:root {
+	--bg: #181e21;
+	--surface: #1d2428;
+	--surface-alt: #222a2e;
+	--text: #ede8df;
+	--muted: #8e969b;
+	--sage: #6c826e;
+	--copper: #b88463;
+	--rule: rgba(184, 132, 99, 0.24);
+	--rule-strong: rgba(184, 132, 99, 0.45);
+	--shadow: 0 14px 38px rgba(5, 8, 10, 0.28);
+
+	--measure: 68ch;
+	--font-display: "Fraunces", ui-serif, Georgia, serif;
+	--font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+	--font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+
+	color-scheme: dark;
+}
+
+@media (prefers-color-scheme: light) {
+	:root {
+		--bg: #ede9e1;
+		--surface: #f6f2ea;
+		--surface-alt: #e3ded5;
+		--text: #263034;
+		--muted: #697378;
+		--sage: #5f7763;
+		--copper: #9e6d50;
+		--rule: rgba(158, 109, 80, 0.26);
+		--rule-strong: rgba(128, 83, 57, 0.42);
+		--shadow: 0 12px 32px rgba(47, 39, 34, 0.1);
+
+		color-scheme: light;
+	}
 }
 
 html,
 body {
-	@apply bg-white dark:bg-gray-950;
+	background: var(--bg);
+	color: var(--text);
+}
 
-	@media (prefers-color-scheme: dark) {
-		color-scheme: dark;
+body {
+	font-family: var(--font-body);
+	font-size: 1.0625rem;
+	line-height: 1.7;
+	-webkit-font-smoothing: antialiased;
+	text-rendering: optimizeLegibility;
+}
+
+::selection {
+	background: var(--copper);
+	color: var(--bg);
+}
+
+a {
+	color: inherit;
+	text-decoration-color: var(--rule-strong);
+	text-underline-offset: 0.22em;
+	text-decoration-thickness: from-font;
+	transition: color 160ms ease, text-decoration-color 160ms ease;
+}
+
+a:hover {
+	color: var(--copper);
+	text-decoration-color: currentColor;
+}
+
+:focus-visible {
+	outline: 2px solid var(--copper);
+	outline-offset: 3px;
+	border-radius: 3px;
+}
+
+.skip {
+	position: absolute;
+	left: -9999px;
+}
+
+/* Present to a text extractor and a screen reader, absent to the eye. Used
+   where the visual design separates two things with space or a border but the
+   plain-text rendering needs real punctuation between them. */
+.vh {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+	border: 0;
+}
+
+.skip:focus {
+	left: 1rem;
+	top: 1rem;
+	z-index: 10;
+	background: var(--surface);
+	padding: 0.6rem 1rem;
+	border-radius: 8px;
+	border: 1px solid var(--rule-strong);
+}
+
+/* ─────────────────────────────────────────────
+   Document shell
+
+   One column, one measure. The page is a document that happens to be styled,
+   not a layout that happens to contain text — which is also what makes it
+   read cleanly once every element is stripped back out of it.
+   ───────────────────────────────────────────── */
+.doc {
+	max-width: 78ch;
+	margin: 0 auto;
+	padding: clamp(2.5rem, 6vw, 5.5rem) clamp(1.25rem, 5vw, 2.5rem) 6rem;
+}
+
+.doc > section {
+	margin-top: clamp(3rem, 6vw, 4.75rem);
+	scroll-margin-top: 2rem;
+}
+
+.doc p {
+	max-width: var(--measure);
+}
+
+.doc p + p {
+	margin-top: 1.1rem;
+}
+
+/* ── Masthead ── */
+.masthead {
+	padding-bottom: clamp(1.75rem, 4vw, 2.75rem);
+	border-bottom: 1px solid var(--rule);
+}
+
+.eyebrow {
+	font-family: var(--font-mono);
+	font-size: 0.7rem;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+	color: var(--muted);
+	margin-bottom: 1.5rem;
+}
+
+.masthead h1 {
+	font-family: var(--font-display);
+	font-optical-sizing: auto;
+	font-weight: 600;
+	font-size: clamp(3rem, 9vw, 5.25rem);
+	line-height: 0.95;
+	letter-spacing: -0.03em;
+	margin: 0;
+}
+
+/* The one sentence the whole page exists to support. It is given the weight
+   that says so, and it is real text at a real heading scale — not an image,
+   not a background, nothing an extractor has to work to reach. */
+.lede {
+	font-family: var(--font-display);
+	font-size: clamp(1.3rem, 3.1vw, 1.85rem);
+	line-height: 1.32;
+	font-weight: 400;
+	letter-spacing: -0.012em;
+	margin: 1.6rem 0 0;
+	padding-left: 1.15rem;
+	border-left: 3px solid var(--copper);
+	max-width: 34ch;
+}
+
+.standfirst {
+	margin-top: 1.6rem;
+	color: var(--muted);
+}
+
+.standfirst strong {
+	color: var(--text);
+	font-weight: 600;
+}
+
+.identity {
+	list-style: none;
+	margin: 2rem 0 0;
+	padding: 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem 1.75rem;
+	font-size: 0.9rem;
+}
+
+.identity li {
+	display: flex;
+	align-items: baseline;
+	gap: 0.5rem;
+}
+
+.identity a {
+	font-weight: 500;
+}
+
+.identity-note {
+	font-family: var(--font-mono);
+	font-size: 0.68rem;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--muted);
+}
+
+/* ── Headings ── */
+.doc h2 {
+	font-family: var(--font-display);
+	font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+	line-height: 1.15;
+	letter-spacing: -0.02em;
+	font-weight: 600;
+	margin: 0 0 1.25rem;
+}
+
+.doc h3 {
+	font-size: 1.05rem;
+	font-weight: 600;
+	line-height: 1.35;
+	margin: 0 0 0.4rem;
+	letter-spacing: -0.005em;
+}
+
+.doc h4 {
+	font-family: var(--font-mono);
+	font-size: 0.7rem;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--muted);
+	margin: 1.75rem 0 0.85rem;
+	font-weight: 500;
+}
+
+.section-intro {
+	color: var(--muted);
+	margin-bottom: 1.75rem;
+}
+
+.prose-lead {
+	font-size: 1.15rem;
+	line-height: 1.62;
+}
+
+/* ── Primary-source panel ──
+   The single loudest element on the page after the name, because sending the
+   reader to builtbywoodley.ca is half of what the page is for. ── */
+.source-panel {
+	background: var(--surface);
+	border: 1px solid var(--rule-strong);
+	border-radius: 18px;
+	padding: clamp(1.5rem, 4vw, 2.25rem);
+	box-shadow: var(--shadow);
+	position: relative;
+	overflow: hidden;
+}
+
+.source-panel::before {
+	content: "";
+	position: absolute;
+	inset: 0 auto 0 0;
+	width: 4px;
+	background: linear-gradient(to bottom, var(--copper), var(--sage));
+}
+
+.source-panel h2 {
+	margin-bottom: 1rem;
+}
+
+.source-note {
+	color: var(--muted);
+	font-size: 0.95rem;
+}
+
+.source-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.75rem;
+	margin-top: 1.75rem;
+	max-width: none;
+}
+
+.button {
+	display: inline-block;
+	padding: 0.7rem 1.15rem;
+	border-radius: 10px;
+	background: var(--copper);
+	color: var(--bg);
+	font-size: 0.9rem;
+	font-weight: 600;
+	text-decoration: none;
+	border: 1px solid transparent;
+	transition: transform 160ms ease, background 160ms ease;
+}
+
+.button:hover {
+	color: var(--bg);
+	transform: translateY(-1px);
+	background: var(--sage);
+}
+
+.button--quiet {
+	background: transparent;
+	color: var(--text);
+	border-color: var(--rule-strong);
+}
+
+.button--quiet:hover {
+	background: var(--surface-alt);
+	color: var(--text);
+}
+
+/* ── Facts ── */
+.facts {
+	margin: 0;
+	border-top: 1px solid var(--rule);
+}
+
+.fact {
+	display: grid;
+	grid-template-columns: minmax(9rem, 15ch) 1fr;
+	gap: 0.35rem 1.5rem;
+	padding: 0.7rem 0;
+	border-bottom: 1px solid var(--rule);
+}
+
+.fact dt {
+	font-family: var(--font-mono);
+	font-size: 0.72rem;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: var(--muted);
+	padding-top: 0.22rem;
+}
+
+.fact dd {
+	margin: 0;
+	overflow-wrap: anywhere;
+}
+
+@media (max-width: 34rem) {
+	.fact {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* ── Evidence ── */
+.evidence,
+.career,
+.projects {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.evidence li {
+	counter-increment: evidence;
+	position: relative;
+	padding: 1.4rem 0 1.4rem 3.25rem;
+	border-bottom: 1px solid var(--rule);
+}
+
+.evidence li::before {
+	content: counter(evidence, decimal-leading-zero);
+	position: absolute;
+	left: 0;
+	top: 1.5rem;
+	font-family: var(--font-mono);
+	font-size: 0.78rem;
+	color: var(--copper);
+	letter-spacing: 0.05em;
+}
+
+.evidence {
+	counter-reset: evidence;
+	border-top: 1px solid var(--rule);
+}
+
+.evidence p {
+	color: var(--muted);
+	margin: 0;
+}
+
+/* ── Career timeline ──
+   A single rule running the height of the list, with each role hung off it.
+   The progression is the point, so the shape of the section carries it. ── */
+.career {
+	position: relative;
+	padding-left: 1.75rem;
+}
+
+.career::before {
+	content: "";
+	position: absolute;
+	left: 4px;
+	top: 0.75rem;
+	bottom: 0.75rem;
+	width: 1px;
+	background: linear-gradient(to bottom, transparent, var(--rule-strong) 12%, var(--rule-strong) 88%, transparent);
+}
+
+.career > li {
+	position: relative;
+	padding: 0 0 2rem;
+}
+
+.career > li::before {
+	content: "";
+	position: absolute;
+	left: -1.75rem;
+	top: 0.6rem;
+	width: 9px;
+	height: 9px;
+	border-radius: 50%;
+	background: var(--bg);
+	border: 1.5px solid var(--rule-strong);
+}
+
+/* The two Principal entries get a filled marker. The rung a career arrives at
+   should be legible from the shape of the list, not only from its words. */
+.career > li:nth-last-child(-n + 2)::before {
+	background: var(--copper);
+	border-color: var(--copper);
+}
+
+.career h3 {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 0.5rem 0.75rem;
+}
+
+.rung {
+	font-family: var(--font-display);
+	font-size: 1.15rem;
+	font-weight: 600;
+	letter-spacing: -0.01em;
+}
+
+.employer {
+	font-family: var(--font-mono);
+	font-size: 0.72rem;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--copper);
+	border: 1px solid var(--rule);
+	border-radius: 999px;
+	padding: 0.15rem 0.6rem;
+}
+
+.role-meta {
+	font-family: var(--font-mono);
+	font-size: 0.75rem;
+	color: var(--muted);
+	margin: 0 0 0.7rem;
+	line-height: 1.6;
+}
+
+.role-meta .sep {
+	margin: 0 0.5rem;
+	opacity: 0.5;
+}
+
+.career p:last-child,
+.education > p:last-of-type {
+	margin: 0;
+	color: var(--muted);
+}
+
+/* ── Education ── */
+.education {
+	border-left: 2px solid var(--rule-strong);
+	padding-left: 1.5rem;
+}
+
+.coops {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	gap: 0.85rem;
+}
+
+.coops li {
+	display: grid;
+	gap: 0.15rem;
+	padding-bottom: 0.85rem;
+	border-bottom: 1px solid var(--rule);
+}
+
+.coops li:last-child {
+	border-bottom: 0;
+	padding-bottom: 0;
+}
+
+.coop-meta {
+	font-family: var(--font-mono);
+	font-size: 0.72rem;
+	color: var(--muted);
+}
+
+.coop-work {
+	font-size: 0.92rem;
+	color: var(--muted);
+}
+
+/* ── Tags ── */
+.tags {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.55rem;
+}
+
+.tags li {
+	font-size: 0.85rem;
+	padding: 0.35rem 0.8rem;
+	border: 1px solid var(--rule);
+	border-radius: 999px;
+	background: var(--surface);
+	color: var(--muted);
+}
+
+/* ── Projects ── */
+.projects {
+	display: grid;
+	gap: 1.25rem;
+}
+
+.projects > li {
+	background: var(--surface);
+	border: 1px solid var(--rule);
+	border-radius: 14px;
+	padding: clamp(1.25rem, 3vw, 1.75rem);
+}
+
+.projects p {
+	color: var(--muted);
+	font-size: 0.97rem;
+}
+
+.stack {
+	font-family: var(--font-mono);
+	font-size: 0.72rem;
+	letter-spacing: 0.06em;
+	color: var(--sage) !important;
+	margin-top: 0.9rem !important;
+}
+
+.project-links {
+	display: flex;
+	gap: 1.25rem;
+	margin-top: 1rem !important;
+	font-size: 0.88rem;
+	font-weight: 500;
+}
+
+.project-links a {
+	color: var(--text);
+}
+
+/* ── The person ── */
+.personal {
+	display: grid;
+	gap: 1.5rem;
+}
+
+.personal article {
+	padding-left: 1.25rem;
+	border-left: 2px solid var(--sage);
+}
+
+.personal p {
+	color: var(--muted);
+	margin: 0;
+}
+
+/* ── FAQ ── */
+.faq {
+	margin: 0;
+	display: grid;
+	gap: 1.4rem;
+}
+
+.qa {
+	border-top: 1px solid var(--rule);
+	padding-top: 1.4rem;
+}
+
+.qa dt {
+	font-family: var(--font-display);
+	font-size: 1.1rem;
+	font-weight: 600;
+	line-height: 1.35;
+	letter-spacing: -0.01em;
+	margin-bottom: 0.6rem;
+}
+
+.qa dd {
+	margin: 0;
+	color: var(--muted);
+	max-width: var(--measure);
+}
+
+/* ── Citation ── */
+.citation {
+	font-family: var(--font-mono);
+	font-size: 0.78rem;
+	line-height: 1.75;
+	background: var(--surface);
+	border: 1px solid var(--rule);
+	border-radius: 12px;
+	padding: clamp(1.1rem, 3vw, 1.6rem);
+	overflow-x: auto;
+	white-space: pre-wrap;
+	color: var(--muted);
+	tab-size: 2;
+}
+
+/* ── Colophon ── */
+.colophon {
+	margin-top: clamp(3.5rem, 7vw, 5rem);
+	padding-top: 2rem;
+	border-top: 1px solid var(--rule-strong);
+}
+
+.colophon h2 {
+	font-family: var(--font-mono);
+	font-size: 0.7rem;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+	color: var(--muted);
+	font-weight: 500;
+	margin-bottom: 1rem;
+}
+
+.colophon p {
+	color: var(--muted);
+	font-size: 0.92rem;
+}
+
+.colophon-cta {
+	margin-top: 1.75rem !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	* {
+		transition-duration: 0.01ms !important;
+	}
+}
+
+/* Printing a profile is a real thing people do with one. Ink-friendly, and
+   with every link's destination spelled out, since paper has no hover. */
+@media print {
+	:root {
+		--bg: #fff;
+		--surface: #fff;
+		--text: #000;
+		--muted: #333;
+		--rule: #ccc;
+		--rule-strong: #999;
+		--shadow: none;
+	}
+
+	.skip,
+	.source-actions,
+	.colophon-cta {
+		display: none;
+	}
+
+	.doc {
+		max-width: none;
+	}
+
+	a[href^="http"]::after {
+		content: " (" attr(href) ")";
+		font-size: 0.75em;
+		color: #555;
+		word-break: break-all;
 	}
 }

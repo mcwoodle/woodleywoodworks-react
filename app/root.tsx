@@ -19,7 +19,9 @@ export const links: Route.LinksFunction = () => [
 	},
 	{
 		rel: "stylesheet",
-		href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
+		// Inter carries the body copy; Fraunces gives the display type the
+		// editorial voice the page is going for. Both variable, one request.
+		href: "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Inter:opsz,wght@14..32,100..900&display=swap",
 	},
 ];
 

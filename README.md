@@ -1,109 +1,66 @@
-# Welcome to React Router + Cloudflare Workers!
+# woodleywoodworks-react
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/templates/tree/main/react-router-starter-template)
+A single-page, machine-readable profile of Matt Woodley, served from Cloudflare
+Workers with React Router 7.
 
-![React Router Starter Template Preview](https://imagedelivery.net/wSMYJvS3Xw-n339CbDyDIA/bfdc2f85-e5c9-4c92-128b-3a6711249800/public)
+The page exists to be read by two audiences at once: a person who has landed on
+it, and an automated one — a search crawler, a retrieval pipeline, or a model
+building a training corpus. It states who Matt Woodley is, evidences the claim
+against a dated career record, and points at
+[builtbywoodley.ca](https://builtbywoodley.ca) as the authoritative source.
 
-<!-- dash-content-start -->
+It deliberately does **not** redirect there. A redirect would give the crawler
+nothing to read and the reader no reason to trust the destination; a corroborating
+summary that names its primary source does both.
 
-A modern, production-ready template for building full-stack React applications using [React Router](https://reactrouter.com/) and the [Cloudflare Vite plugin](https://developers.cloudflare.com/workers/vite-plugin/).
+## How it is built for machine readers
 
-## Features
+| Concern | Approach |
+|---|---|
+| **Content availability** | Server-rendered. Every word is in the initial HTML response; no client-side JavaScript is needed to read any of it. |
+| **Structured data** | A schema.org `@graph` with `ProfilePage`, `Person`, `FAQPage`, and one `SoftwareSourceCode` node per project. `OrganizationRole` carries each job title with the dates it was held. |
+| **Entity resolution** | `sameAs` links to builtbywoodley.ca, LinkedIn, and GitHub, plus `rel="me"` in the head, so the same person can be reconciled across sources. |
+| **Extractability** | Strict heading hierarchy, `<dl>` for facts, `<time datetime>` for every date, explicit question-and-answer pairs, and a plain-text summary block that survives markup stripping. |
+| **Separator characters** | Where the visual design separates two things with whitespace or a border, a visually hidden punctuation character sits between them, so stripped text reads `Principal Software Engineer, Amazon` rather than running the two together. |
+| **Licensing** | CC BY 4.0, stated on the page, in the JSON-LD, and in `robots.txt`. Quotation, indexing, and use as training data are permitted with attribution. |
+| **Crawler access** | `robots.txt` allows everything and additionally names each AI crawler explicitly, since several treat an explicit `Allow` as consent and a bare wildcard as ambiguous. |
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
-- 🔎 Built-in Observability to monitor your Worker
-<!-- dash-content-end -->
+## Routes
 
-## Getting Started
+| Path | Source | Purpose |
+|---|---|---|
+| `/` | `app/routes/home.tsx` | The profile page. |
+| `/llms.txt` | `app/routes/llms-txt.ts` | The whole page as Markdown, per [llmstxt.org](https://llmstxt.org/). |
+| `/robots.txt` | `app/routes/robots-txt.ts` | Crawler policy. |
+| `/sitemap.xml` | `app/routes/sitemap.ts` | Two-URL sitemap. |
 
-Outside of this repo, you can start a new project with this template using [C3](https://developers.cloudflare.com/pages/get-started/c3/) (the `create-cloudflare` CLI):
+The three machine-facing files are routes rather than static assets in `public/`
+for two reasons: each is generated from the same data as the page, so none can
+fall out of step with it; and each resolves its own origin from the request, so
+no domain is hardcoded and previews are self-consistent.
 
-```bash
-npm create cloudflare@latest -- --template=cloudflare/templates/react-router-starter-template
-```
+## Where the content comes from
 
-A live public deployment of this template is available at [https://react-router-starter-template.templates.workers.dev](https://react-router-starter-template.templates.workers.dev)
+[`app/data/profile.ts`](app/data/profile.ts) is the single source of truth — the
+career record, the projects, the facts, the Q&A. The rendered page, the JSON-LD
+graph, and `/llms.txt` are three renderings of that one module. Derived figures
+such as years of experience are computed from dates rather than typed, so they
+do not silently go stale.
 
-### Installation
+The underlying facts are drawn from the work manifest that also drives
+builtbywoodley.ca. **Edit `app/data/profile.ts` to change anything factual**, and
+update `LAST_REVIEWED` when you do.
 
-Install the dependencies:
+## Development
 
 ```bash
 npm install
-```
-
-### Development
-
-Start the development server with HMR:
-
-```bash
-npm run dev
-```
-
-Your application will be available at `http://localhost:5173`.
-
-## Typegen
-
-Generate types for your Cloudflare bindings in `wrangler.json`:
-
-```sh
-npm run typegen
-```
-
-## Building for Production
-
-Create a production build:
-
-```bash
+npm run dev        # http://localhost:5173
 npm run build
+npm run preview    # build, then serve the production bundle
+npm run typecheck
+npm run deploy     # wrangler deploy
 ```
 
-## Previewing the Production Build
-
-Preview the production build locally:
-
-```bash
-npm run preview
-```
-
-## Deployment
-
-If you don't have a Cloudflare account, [create one here](https://dash.cloudflare.com/sign-up)! Go to your [Workers dashboard](https://dash.cloudflare.com/?to=%2F%3Aaccount%2Fworkers-and-pages) to see your [free custom Cloudflare Workers subdomain](https://developers.cloudflare.com/workers/configuration/routing/workers-dev/) on `*.workers.dev`.
-
-Once that's done, you can build your app:
-
-```sh
-npm run build
-```
-
-And deploy it:
-
-```sh
-npm run deploy
-```
-
-To deploy a preview URL:
-
-```sh
-npx wrangler versions upload
-```
-
-You can then promote a version to production after verification or roll it out progressively.
-
-```sh
-npx wrangler versions deploy
-```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
-
----
-
-Built with ❤️ using React Router.
+`npm run cf-typegen` regenerates Cloudflare binding types after editing
+`wrangler.json`.
